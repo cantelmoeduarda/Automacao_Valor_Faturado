@@ -1,1 +1,1 @@
-Esse projeto tem como intuito a automação de um processo recorrente do meu trabalho. Ele vai automatizar processos como a criação de um excel que junta três outras planilhas de lugares diferentes. Além disso, ele vai trabalhar com vários filtros do excel. 
+Este projeto visa automatizar um processo recorrente no meu trabalho, incluindo a criação de uma planilha que reúne dados de três outras planilhas de fontes distintas e a aplicação de vários filtros no Excel.
