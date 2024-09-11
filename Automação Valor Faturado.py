@@ -1,5 +1,4 @@
-import openpyxl as xl
-from openpyxl.styles import PatternFill, Font
+
 import os
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -12,14 +11,13 @@ from openpyxl.styles import NamedStyle, Border, Side
 from openpyxl.utils import get_column_letter
 import sys
 import pandas as pd
-import tkinter as tk
 from tkinter import simpledialog
-import os
+import openpyxl
+from openpyxl.styles import Font, Border, Fill, Alignment, Protection
 
-import pandas as pd
-import tkinter as tk
-from tkinter import simpledialog
-import os
+from openpyxl.styles import PatternFill, Font
+
+from copy import copy
 
 def encontrar_caminho_area_de_trabalho():
     caminhos_possiveis = [
@@ -42,12 +40,17 @@ def encontrar_arquivo(pasta, nome_arquivo):
     else:
         return None
 
-def ler_arquivo(caminho_arquivo):
-    try:
-        df = pd.read_excel(caminho_arquivo)
-        return df
-    except Exception as e:
-        return f"Erro ao ler o arquivo {caminho_arquivo}: {e}"
+def copiar_aba(origem, destino):
+    for row in origem.iter_rows():
+        for cell in row:
+            new_cell = destino.cell(row=cell.row, column=cell.column, value=cell.value)
+            if cell.has_style:
+                new_cell.font = copy(cell.font)
+                new_cell.border = copy(cell.border)
+                new_cell.fill = copy(cell.fill)
+                new_cell.number_format = cell.number_format
+                new_cell.protection = copy(cell.protection)
+                new_cell.alignment = copy(cell.alignment)
 
 def main():
     root = tk.Tk()
@@ -59,24 +62,26 @@ def main():
     if pasta and mes_ano:
         caminho_desktop = encontrar_caminho_area_de_trabalho()
         caminho_pasta = os.path.join(caminho_desktop, pasta)
+
         caminho_arquivo_b = encontrar_arquivo(pasta, 'B.xlsx')
         caminho_arquivo_c = encontrar_arquivo(pasta, 'C.xlsx')
         caminho_arquivo_d = encontrar_arquivo(pasta, 'D.xlsx')
 
         if caminho_arquivo_b and caminho_arquivo_c and caminho_arquivo_d:
-            df_b = ler_arquivo(caminho_arquivo_b)
-            df_c = ler_arquivo(caminho_arquivo_c)
-            df_d = ler_arquivo(caminho_arquivo_d)
+            wb_final = openpyxl.Workbook()
+            wb_final.remove(wb_final.active)  # Remove a aba padrão
+            abas = [caminho_arquivo_b, caminho_arquivo_c, caminho_arquivo_d]
+            nomes_abas = ['Apuração do Faturamento', 'Gabarito Prateleira - SIAD', 'Gabarito Órgão - Sigla 2024']
 
-            if isinstance(df_b, pd.DataFrame) and isinstance(df_c, pd.DataFrame) and isinstance(df_d, pd.DataFrame):
-                nome_arquivo_final = os.path.join(caminho_pasta, f"Valor Faturado - {mes_ano}.xlsx")
-                with pd.ExcelWriter(nome_arquivo_final) as writer:
-                    df_b.to_excel(writer, sheet_name='Apuração do Faturamento', index=False)
-                    df_c.to_excel(writer, sheet_name='Gabarito Prateleira - SIAD', index=False)
-                    df_d.to_excel(writer, sheet_name='Gabarito Órgão - Sigla 2024', index=False)
-                print(f"Arquivo salvo como: {nome_arquivo_final}")
-            else:
-                print("Erro ao processar os DataFrames.")
+            for arquivo, nome_aba in zip(abas, nomes_abas):
+                wb_origem = openpyxl.load_workbook(arquivo, data_only=True)
+                ws_origem = wb_origem.active
+                ws_destino = wb_final.create_sheet(title=nome_aba)
+                copiar_aba(ws_origem, ws_destino)
+
+            nome_arquivo_final = os.path.join(caminho_pasta, f"Valor Faturado - 20{mes_ano}.xlsx")
+            wb_final.save(nome_arquivo_final)
+            print(f"Arquivo salvo como: {nome_arquivo_final}")
         else:
             print("Um ou mais arquivos não foram encontrados.")
     else:
