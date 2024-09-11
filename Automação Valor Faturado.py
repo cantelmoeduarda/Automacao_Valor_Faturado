@@ -1,4 +1,10 @@
+# a fazer:
+##
+##
+##
+##
 
+#importações
 import os
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
@@ -13,6 +19,7 @@ import sys
 import pandas as pd
 from tkinter import simpledialog
 
+
 def main():
     nomepasta = entrada_nomepasta.get()
     caminhoDesktop = encontrar_caminho_area_de_trabalho()
@@ -21,7 +28,7 @@ def main():
         messagebox.showerror("Erro", "Preencha todas as caixas de texto.")
         return
     
-    #colocar aqui o erro de espaços a mais
+
 
     encontrar_caminho_area_de_trabalho()
     df_apuracao = encontrar_caminho_apuracao()
@@ -61,11 +68,17 @@ def encontrar_caminho_apuracao():
             print("Nenhum arquivo de 'Apuração do faturamento' encontrado.")
             return None  # Retorna None se não encontrar arquivos
 
-    for arquivo in nome_apuracao:
-        caminho_apuracao = os.path.join(caminho_simples, arquivo)
-        df_apuracao = pd.read_excel(caminho_apuracao, sheet_name = 'Apuração do Faturamento')
-        print(f"Arquivo {arquivo} lido com sucesso")
-    return df_apuracao
+    try:
+        for arquivo in nome_apuracao:
+            caminho_apuracao = os.path.join(caminho_simples, arquivo)
+            df_apuracao = pd.read_excel(caminho_apuracao, sheet_name = 'Apuração do Faturamento')
+            print(f"Arquivo {arquivo} lido com sucesso")
+        return df_apuracao
+    except PermissionError:
+        messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo Apuração do Faturamento não esteja aberto")
+        return
+
+    
 
 
 
@@ -80,11 +93,15 @@ def encontrar_caminho_gabarito():
         print("Nenhum arquivo de 'Gabarito Prateleira' encontrado.")
         return None
 
-    for arquivo in nome_gabarito:
-        caminho_gabarito = os.path.join(caminho_simples, arquivo)
-        df_gabarito = pd.read_excel(caminho_gabarito)
-        print(f"Arquivo {arquivo} lido com sucesso")
-    return df_gabarito
+    try:
+        for arquivo in nome_gabarito:
+            caminho_gabarito = os.path.join(caminho_simples, arquivo)
+            df_gabarito = pd.read_excel(caminho_gabarito)
+            print(f"Arquivo {arquivo} lido com sucesso")
+        return df_gabarito
+    except PermissionError:
+        messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo gabarito taltal não esteja aberto")
+        return
 
 
 
@@ -99,11 +116,15 @@ def encontrar_caminho_cod_orgao():
         print("Nenhum arquivo de 'Gabarito Órgão-Sigla' encontrado.")
         return None
 
-    for arquivo in nome_cod_orgao:
-        caminho_cod_orgao = os.path.join(caminho_simples, arquivo)
-        df_cod_orgao = pd.read_excel(caminho_cod_orgao)
-        print(f"Arquivo {arquivo} lido com sucesso")
-    return df_cod_orgao
+    try:
+        for arquivo in nome_cod_orgao:
+            caminho_cod_orgao = os.path.join(caminho_simples, arquivo)
+            df_cod_orgao = pd.read_excel(caminho_cod_orgao)
+            print(f"Arquivo {arquivo} lido com sucesso")
+        return df_cod_orgao
+    except PermissionError:
+        messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo Código taltal não esteja aberto")
+        return
 
 
 
@@ -149,7 +170,6 @@ help_icon = Image.open(icon_path)
 help_icon = help_icon.resize((22, 22), Image.LANCZOS)
 help_icon = ImageTk.PhotoImage(help_icon)
 help_button = tk.Button(janela, image=help_icon, command=ajuda, borderwidth=0, bg='#f0f0f0', activebackground='#f0f0f0')
-#help_button = tk.Button(janela, image=help_icon, command=ajuda, borderwidth=0)
 help_button.grid(column=1, row=3, sticky='e', padx=10)
 
 
