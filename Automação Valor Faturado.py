@@ -1,8 +1,10 @@
-# a fazer:
-##
-##
-##
-##
+''' 
+A fazer:
+- colocar opção de pesquisar a pasta em vez de digitar o nome
+- colocar opção de data na janela (usando caixinha de data)
+- Juntar a alteracao_planilha no código principal
+
+'''
 
 #importações
 import os
@@ -37,10 +39,12 @@ def main():
 
     if df_apuracao is None or df_gabarito is None or df_cod_orgao is None:
         messagebox.showerror("Erro", "Um ou mais arquivos corretos não foram encontrados na pasta.")
-        return
-
+        raise Exception('Um dos arquivos não foram encontrados') #isso aqui vai parar o código
+    
     print("Todos os arquivos foram lidos com sucesso.")
-    # lembrar de fazer um os.path join com o caminho do arquivo novo
+    return
+
+    
 
 
 def encontrar_caminho_area_de_trabalho():
@@ -76,7 +80,7 @@ def encontrar_caminho_apuracao():
         return df_apuracao
     except PermissionError:
         messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo Apuração do Faturamento não esteja aberto")
-        return
+        raise Exception('Erro ao ler arquivo Apuração do Faturamento')
 
     
 
@@ -101,7 +105,7 @@ def encontrar_caminho_gabarito():
         return df_gabarito
     except PermissionError:
         messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo gabarito taltal não esteja aberto")
-        return
+        raise Exception('Erro ao ler arquivo gabarito taltal')
 
 
 
@@ -124,7 +128,7 @@ def encontrar_caminho_cod_orgao():
         return df_cod_orgao
     except PermissionError:
         messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo Código taltal não esteja aberto")
-        return
+        raise Exception('Erro ao ler arquivo código taltal')
 
 
 
