@@ -51,19 +51,6 @@ df_apuracao['Dias de atraso - pedido original'] = df_apuracao['Dias de atraso - 
 df_apuracao['Data limite de entrega - entrega corretiva'] = df_apuracao['Data limite de entrega - entrega corretiva'].replace('Não se aplica', "")
 df_apuracao['Dias de atraso - entrega corretiva'] = df_apuracao['Dias de atraso - entrega corretiva'].replace('Não se aplica', "")
 
-import pandas as pd
-
-# Supondo que você já tenha um DataFrame criado
-# df = pd.DataFrame(...)
-
-# Definindo o caminho completo onde o arquivo será salvo
-caminho_do_arquivo = '/caminho/para/pasta/nome_do_arquivo.xlsx'
-
-# Salvando o DataFrame em um arquivo Excel com um nome específico para a planilha
-df_apuracao.to_excel('C:/Users/cante/OneDrive/Desktop/primeira/Valor Faturado.xlsx',index=False,sheet_name='Valor Faturado')
-
-df_apuracao.info()
-#print(df_apuracao['Data limite de entrega - pedido original'])
 
 
 
