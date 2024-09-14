@@ -2,6 +2,7 @@
 A fazer:
 - colocar opção de pesquisar a pasta em vez de digitar o nome
 - colocar opção de data na janela (usando caixinha de data)
+-Fechar janela depois de clicar em aplicar
 - Juntar a alteracao_planilha no código principal
 
 '''
