@@ -1,9 +1,9 @@
 ''' 
 A fazer:
-- colocar opção de pesquisar a pasta em vez de digitar o nome
 - colocar opção de data na janela (usando caixinha de data)
--Fechar janela depois de clicar em aplicar
+- Fechar janela depois de clicar em aplicar
 - Juntar a alteracao_planilha no código principal
+- Fazer o design da janela
 
 '''
 
@@ -21,53 +21,32 @@ from openpyxl.utils import get_column_letter
 import sys
 import pandas as pd
 from tkinter import simpledialog
+from tkinter.filedialog import askopenfile
+from tkinter.filedialog import askdirectory
+
 
 
 def main():
-    nomepasta = entrada_nomepasta.get()
-    caminhoDesktop = encontrar_caminho_area_de_trabalho()
 
-    if not nomepasta:
-        messagebox.showerror("Erro", "Preencha todas as caixas de texto.")
-        return
+
+    df_apuracao = encontrar_caminho_apuracao()
+    df_prateleira = encontrar_caminho_cod_orgao()
+    df_orgao_sigla = encontrar_caminho_gabarito()
     
 
-
-    encontrar_caminho_area_de_trabalho()
-    df_apuracao = encontrar_caminho_apuracao()
-    df_gabarito = encontrar_caminho_cod_orgao()
-    df_cod_orgao = encontrar_caminho_gabarito()
-
-    if df_apuracao is None or df_gabarito is None or df_cod_orgao is None:
+    if df_apuracao is None or df_prateleira is None or df_orgao_sigla is None:
         messagebox.showerror("Erro", "Um ou mais arquivos corretos não foram encontrados na pasta.")
         raise Exception('Um dos arquivos não foram encontrados') #isso aqui vai parar o código
     
-    print("Todos os arquivos foram lidos com sucesso.")
-    return
+    print("Todos os arquivos foram lidoss com sucesso.")
 
     
-
-
-def encontrar_caminho_area_de_trabalho():
-    caminhos_possiveis = [
-        os.path.join(os.path.expanduser("~"),"Desktop"),
-        os.path.join(os.path.expanduser("~"),"Área de Trabalho"),
-        os.path.join(os.path.expanduser("~"),"OneDrive", "Área de Trabalho"),
-        os.path.join(os.path.expanduser("~"),"OneDrive", "Desktop")
-    ]
-    for caminho in caminhos_possiveis:
-        if os.path.exists(caminho):
-            return caminho
-    raise FileExistsError("Não foi possível encontrar a pasta Área de Trabalho ou Desktop.") #O raise está fora do loop for e não diretamente dentro do if porque o objetivo é verificar todos os caminhos possíveis antes de decidir se uma exceção deve ser lançada.
-
+    return
 
 
 def encontrar_caminho_apuracao():
-    caminhoDesktop = encontrar_caminho_area_de_trabalho()
-    nomepasta = entrada_nomepasta.get()
-    nomepasta = nomepasta.strip()
-    caminho_simples = os.path.join(caminhoDesktop, nomepasta) #nome vai ser fornecido via tk
-    nome_apuracao = [f for f in os.listdir(caminho_simples) if f.startswith('Apuração') and f.endswith('xlsx')]
+    caminho_pasta = var_caminho_pasta.get()
+    nome_apuracao = [f for f in os.listdir(caminho_pasta) if f.startswith('Apuração') and f.endswith('xlsx')]
 
     if not nome_apuracao:
             print("Nenhum arquivo de 'Apuração do faturamento' encontrado.")
@@ -75,7 +54,7 @@ def encontrar_caminho_apuracao():
 
     try:
         for arquivo in nome_apuracao:
-            caminho_apuracao = os.path.join(caminho_simples, arquivo)
+            caminho_apuracao = os.path.join(caminho_pasta, arquivo)
             df_apuracao = pd.read_excel(caminho_apuracao, sheet_name = 'Apuração do Faturamento')
             print(f"Arquivo {arquivo} lido com sucesso")
         return df_apuracao
@@ -88,11 +67,8 @@ def encontrar_caminho_apuracao():
 
 
 def encontrar_caminho_gabarito():
-    caminhoDesktop = encontrar_caminho_area_de_trabalho()
-    nomepasta = entrada_nomepasta.get()
-    nomepasta = nomepasta.strip()
-    caminho_simples = os.path.join(caminhoDesktop, nomepasta)
-    nome_gabarito = [f for f in os.listdir(caminho_simples) if f.startswith('Gabarito Prateleira') and f.endswith('xlsx')]
+    caminho_pasta = var_caminho_pasta.get()
+    nome_gabarito = [f for f in os.listdir(caminho_pasta) if f.startswith('Gabarito Prateleira') and f.endswith('xlsx')]
 
     if not nome_gabarito:
         print("Nenhum arquivo de 'Gabarito Prateleira' encontrado.")
@@ -100,10 +76,10 @@ def encontrar_caminho_gabarito():
 
     try:
         for arquivo in nome_gabarito:
-            caminho_gabarito = os.path.join(caminho_simples, arquivo)
-            df_gabarito = pd.read_excel(caminho_gabarito)
+            caminho_gabarito = os.path.join(caminho_pasta, arquivo)
+            df_prateleira = pd.read_excel(caminho_gabarito)
             print(f"Arquivo {arquivo} lido com sucesso")
-        return df_gabarito
+        return df_prateleira
     except PermissionError:
         messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo gabarito taltal não esteja aberto")
         raise Exception('Erro ao ler arquivo gabarito taltal')
@@ -111,11 +87,8 @@ def encontrar_caminho_gabarito():
 
 
 def encontrar_caminho_cod_orgao():
-    caminhoDesktop = encontrar_caminho_area_de_trabalho()
-    nomepasta = entrada_nomepasta.get()
-    nomepasta = nomepasta.strip()
-    caminho_simples = os.path.join(caminhoDesktop, nomepasta)
-    nome_cod_orgao = [f for f in os.listdir(caminho_simples) if f.startswith('Gabarito Órgão-Sigla') and f.endswith('xlsx')]
+    caminho_pasta = var_caminho_pasta.get()
+    nome_cod_orgao = [f for f in os.listdir(caminho_pasta) if f.startswith('Gabarito Órgão-Sigla') and f.endswith('xlsx')]
 
     if not nome_cod_orgao:
         print("Nenhum arquivo de 'Gabarito Órgão-Sigla' encontrado.")
@@ -123,10 +96,10 @@ def encontrar_caminho_cod_orgao():
 
     try:
         for arquivo in nome_cod_orgao:
-            caminho_cod_orgao = os.path.join(caminho_simples, arquivo)
-            df_cod_orgao = pd.read_excel(caminho_cod_orgao)
+            caminho_cod_orgao = os.path.join(caminho_pasta, arquivo)
+            df_orgao_sigla = pd.read_excel(caminho_cod_orgao)
             print(f"Arquivo {arquivo} lido com sucesso")
-        return df_cod_orgao
+        return df_orgao_sigla
     except PermissionError:
         messagebox.showerror("Erro", "Erro ao ler os arquivos. Verifique se o arquivo Código taltal não esteja aberto")
         raise Exception('Erro ao ler arquivo código taltal')
@@ -135,18 +108,28 @@ def encontrar_caminho_cod_orgao():
 
 # A partir daqui o código é referente à janela 
 
+def selecionar_arquivo():
+    caminho_pasta = askdirectory(title='Selecione a pasta com os arquivos')
+    var_caminho_pasta.set(caminho_pasta)    
+    if caminho_pasta:
+        label_pasta_selecionada['text'] = f"Pasta selecionada: {os.path.basename(caminho_pasta)}" #ve se isso rola
+
 janela = tk.Tk()
 janela.geometry('400x200')
 janela.title('Valor Faturado') #rever nome da janela
 janela.resizable(False,False) #pra não conseguirem mudar o tamanho da caixa
-texto = tk.Label(janela, text='Nome pasta:')
-texto.grid(column=0, row=0, pady=10) #tentar padx dps pra ver a diferença
-entrada_nomepasta = tk.Entry(janela)
-entrada_nomepasta.grid(column=1, row=0, ipadx = 60)
-#ainda tenho que colocar uma entrada para o nome do arquivo
-botao = tk.Button(janela, text='Processar', command=main)
-##botao.grid(column = 0, row=3, pady=10)
-botao.grid(column=0, row=3, columnspan=2, pady=20, ipadx=20, ipady=5)
+texto = tk.Label(janela, text='Selecione a pasta com os arquivos:')
+texto.grid(column=0, row=0, pady=10) 
+
+var_caminho_pasta = tk.StringVar()
+botao_selecionararquivo = tk.Button(janela, text="Clique para Selecionar", command=selecionar_arquivo)
+botao_selecionararquivo.grid(row=3, column=0, padx=10, pady=10, sticky='nsew')
+label_pasta_selecionada = tk.Label(janela, text='Nenhuma pasta selecionada', anchor='e')
+label_pasta_selecionada.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky='nsew')
+
+
+botao_processar = tk.Button(janela, text='Processar', command=main)
+botao_processar.grid(column=0, row=5, columnspan=2,ipady=5)
 
 
 # Tratando as imagens que farão parte do botão:
