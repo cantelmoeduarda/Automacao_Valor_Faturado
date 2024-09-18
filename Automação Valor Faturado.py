@@ -1,9 +1,6 @@
 ''' 
 A fazer:
-- colocar opção de data na janela (usando caixinha de data)
-- Fechar janela depois de clicar em aplicar
-- Juntar a alteracao_planilha no código principal
-- Fazer o design da janela
+- depende resposta jessica: colocar opção de data na janela (usando caixinha de data)
 
 '''
 
@@ -28,10 +25,10 @@ from tkinter.filedialog import askdirectory
 
 def main():
 
-
+    caminho_pasta = var_caminho_pasta.get()
     df_apuracao = encontrar_caminho_apuracao()
-    df_prateleira = encontrar_caminho_cod_orgao()
-    df_orgao_sigla = encontrar_caminho_gabarito()
+    df_orgao_sigla = encontrar_caminho_cod_orgao()
+    df_prateleira = encontrar_caminho_gabarito()
     
 
     if df_apuracao is None or df_prateleira is None or df_orgao_sigla is None:
@@ -39,6 +36,49 @@ def main():
         raise Exception('Um dos arquivos não foram encontrados') #isso aqui vai parar o código
     
     print("Todos os arquivos foram lidoss com sucesso.")
+    df_apuracao.insert(58,'Ajustes',0)
+    # Etapa de preenchimento de uma nova coluna SIGLA com valores da tabela gabarito órgão sigla
+    df_orgao_sigla = df_orgao_sigla.rename(columns = {'Cliente Nome':'Órgão/Entidade'})
+    df_apuracao = df_apuracao.merge(df_orgao_sigla[['Órgão/Entidade','Sigla']],on='Órgão/Entidade', how='left') #esse merge deu tudo certo
+
+
+    # Etapa de preenchimento de uma nova coluna Item e Categoria com valores da tabela gabarito prateleira
+    df_prateleira.drop(['Código Item Material - Numérico','Item Material','Item Correspondente.1','Situação'],axis='columns',inplace=True)
+    df_prateleira.drop_duplicates(subset=['Código do item AVMG'],inplace=True)
+    df_prateleira = df_prateleira.rename(columns = {'Código do item AVMG':'ID Item'})
+    df_prateleira = df_prateleira.rename(columns = {'Item Correspondente':'Item'})
+    df_apuracao = df_apuracao.merge(df_prateleira,on='ID Item', how='left')
+
+
+    # Etapa Preencheendo  a coluna “Observação” com o texto “Sem observação”
+    df_apuracao['Observação'] = 'Sem observação'
+
+
+    # Etapa Preencheendo  a coluna “Exercício” com o ano referente ao da coluna Data da Aprovação
+    df_apuracao['Exercício'] = df_apuracao['Data da Aprovação'].dt.year.fillna(0).astype(int)
+
+
+    # Etapa de exclusão de valores "Não se aplica"
+    df_apuracao['Data limite de entrega - pedido original'] = df_apuracao['Data limite de entrega - pedido original'].replace('Não se aplica', "")
+    df_apuracao['Dias de atraso - pedido original'] = df_apuracao['Dias de atraso - pedido original'].replace('Não se aplica', "")
+    df_apuracao['Data limite de entrega - entrega corretiva'] = df_apuracao['Data limite de entrega - entrega corretiva'].replace('Não se aplica', "")
+    df_apuracao['Dias de atraso - entrega corretiva'] = df_apuracao['Dias de atraso - entrega corretiva'].replace('Não se aplica', "")
+
+
+    #Etapa de tirar o time da data
+    obj_to_data = ['Data limite de entrega - entrega corretiva', 'Data limite de entrega - pedido original']
+
+    for coluna in obj_to_data:
+        df_apuracao[coluna] = pd.to_datetime(df_apuracao[coluna])
+        
+    colunas_de_data = ['Data do Fato Gerador', 'Data da Aprovação', 'Data do Ateste','Data limite de entrega - entrega corretiva', 'Data limite de entrega - pedido original']
+    for data in colunas_de_data:
+        df_apuracao[data] = pd.to_datetime(df_apuracao[data]).dt.strftime('%d/%m/%Y')
+        
+    df_apuracao.info()
+    caminho_arquivo_final = os.path.join(caminho_pasta,'Valor Faturado.xlsx')
+    df_apuracao.to_excel(caminho_arquivo_final,index=False, sheet_name='Valor Faturado')
+    
 
     
     return
@@ -108,28 +148,35 @@ def encontrar_caminho_cod_orgao():
 
 # A partir daqui o código é referente à janela 
 
+#Essa função 
 def selecionar_arquivo():
     caminho_pasta = askdirectory(title='Selecione a pasta com os arquivos')
     var_caminho_pasta.set(caminho_pasta)    
     if caminho_pasta:
         label_pasta_selecionada['text'] = f"Pasta selecionada: {os.path.basename(caminho_pasta)}" #ve se isso rola
+    
 
 janela = tk.Tk()
 janela.geometry('400x200')
 janela.title('Valor Faturado') #rever nome da janela
 janela.resizable(False,False) #pra não conseguirem mudar o tamanho da caixa
 texto = tk.Label(janela, text='Selecione a pasta com os arquivos:')
-texto.grid(column=0, row=0, pady=10) 
+texto.grid(column=1, row=0, padx=10, pady=10, sticky='w')
+
+janela.grid_columnconfigure(0, weight=1)
+janela.grid_columnconfigure(1, weight=1)
 
 var_caminho_pasta = tk.StringVar()
-botao_selecionararquivo = tk.Button(janela, text="Clique para Selecionar", command=selecionar_arquivo)
-botao_selecionararquivo.grid(row=3, column=0, padx=10, pady=10, sticky='nsew')
-label_pasta_selecionada = tk.Label(janela, text='Nenhuma pasta selecionada', anchor='e')
-label_pasta_selecionada.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky='nsew')
-
+botao_selecionararquivo = tk.Button(janela, text="Selecionar", command=selecionar_arquivo)
+botao_selecionararquivo.grid(row=1, column=1, padx=10, pady=10, sticky='nsew')
+label_pasta_selecionada = tk.Label(janela, text='* Nenhuma pasta selecionada',fg='blue')
+label_pasta_selecionada.grid(row=2, column=1, sticky='nsew')
 
 botao_processar = tk.Button(janela, text='Processar', command=main)
-botao_processar.grid(column=0, row=5, columnspan=2,ipady=5)
+botao_processar.grid(column=1, row=3, columnspan=1, padx=10, pady=10, ipady=5, sticky='nsew')
+
+
+
 
 
 # Tratando as imagens que farão parte do botão:
@@ -151,15 +198,14 @@ janela.iconphoto(True, icone)
 # botao de ajuda
 def ajuda():
     messagebox.showinfo("Informações importantes",
-                        "Selecione taltaltal... (usar barra + n para colocar texto embaixo)")
+                        "Selecione a pasta que contenha os arquivos:\n\nApuração do Faturamento\nGabarito Prateleira - SIAD\nCódigo Órgão - Sigla")
     
 icon_path = resource_path("botao_de_ajuda_transparente.png")
 help_icon = Image.open(icon_path)
 help_icon = help_icon.resize((22, 22), Image.LANCZOS)
 help_icon = ImageTk.PhotoImage(help_icon)
 help_button = tk.Button(janela, image=help_icon, command=ajuda, borderwidth=0, bg='#f0f0f0', activebackground='#f0f0f0')
-help_button.grid(column=1, row=3, sticky='e', padx=10)
-
+help_button.grid(row=4, column=4, padx=10, sticky='e')
 
 
 janela.mainloop()
