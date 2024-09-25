@@ -1,11 +1,3 @@
-''' 
-A fazer:
-- Caso for rodar em casa, lembrar de pip install XlsxWriter
-
-- Tornar executável
-- depende resposta jessica: colocar opção de data na janela (usando caixinha de data)
-- Transformar em data
-'''
 
 #importações
 import os
@@ -71,11 +63,6 @@ def main():
     df_apuracao['Dias de atraso - entrega corretiva'] = df_apuracao['Dias de atraso - entrega corretiva'].replace('Não se aplica', "")
 
 
-    #Etapa de tirar o time da data
-
-    colunas_de_data = ['Data do Fato Gerador', 'Data da Aprovação', 'Data do Ateste','Data limite de entrega - entrega corretiva', 'Data limite de entrega - pedido original']
-    for data in colunas_de_data:
-        df_apuracao[data] = pd.to_datetime(df_apuracao[data]).dt.strftime('%d/%m/%Y')
     
     #Salvando o arquivo em excel com algumas colunas em formato de data e design em geral
     caminho_arquivo_final = os.path.join(caminho_pasta,'Valor Faturado.xlsx')
@@ -84,16 +71,28 @@ def main():
 
     wb = load_workbook(caminho_arquivo_final)
     ws = wb['Valor Faturado']
-
-    date_style = NamedStyle(name='date_style', number_format='DD/MM/YYYY')
+    
+    #Etapa de tirar o time da data
+    colunas_de_data = ['Data do Fato Gerador', 'Data da Aprovação', 'Data do Ateste','Data limite de entrega - entrega corretiva', 'Data limite de entrega - pedido original']
+    for data in colunas_de_data:
+        df_apuracao[data] = pd.to_datetime(df_apuracao[data]).dt.strftime('%d/%m/%Y')
 
     if 'date_style' not in wb.named_styles:
+        date_style = NamedStyle(name='date_style', number_format='DD/MM/YYYY')
         wb.add_named_style(date_style)
 
     colunas_de_data_excel = ['BJ', 'AV', 'AR', 'AQ']
+    for col in colunas_de_data:
+        if col in df_apuracao.columns:
+            df_apuracao[col] = pd.to_datetime(df_apuracao[col], format='%d/%m/%Y', errors='coerce')
+            
     for col in colunas_de_data_excel:
-        ws.column_dimensions[col].number_format = 'DD/MM/YYYY'
-
+        for row in range(2, ws.max_row + 1): 
+            cell = ws[f'{col}{row}']
+            if cell.value:
+                cell.style = 'date_style'
+            
+            
     filtro = f"A1:{get_column_letter(ws.max_column)}1"
     ws.auto_filter.ref = filtro
 
