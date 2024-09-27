@@ -1,22 +1,22 @@
-
 #importações
-import os
+
 from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 import tkinter as tk
-from tkinter import messagebox
-from PIL import Image, ImageTk
-from tkinterdnd2 import DND_FILES, TkinterDnD
-import pyautogui as bot
-import openpyxl as xl
-from openpyxl.styles import NamedStyle, Border, Side
-from openpyxl.utils import get_column_letter
-from openpyxl import load_workbook
-import sys
-import pandas as pd
 from tkinter import simpledialog
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askdirectory
+from tkinter import messagebox
+from PIL import Image, ImageTk
+from tkinterdnd2 import DND_FILES, TkinterDnD
+import openpyxl as xl
+from openpyxl.styles import NamedStyle, Border, Side, PatternFill, Font, Alignment
+from openpyxl.utils import get_column_letter, column_index_from_string
+from openpyxl import load_workbook
+import sys
+import os
+import pandas as pd
+
 
 
 
@@ -41,10 +41,10 @@ def main():
 
 
     # Etapa de preenchimento de uma nova coluna Item e Categoria com valores da tabela gabarito prateleira
-    df_prateleira.drop(['Código Item Material - Numérico','Item Material','Item Correspondente.1','Situação'],axis='columns',inplace=True)
+    df_prateleira.drop(['Código Item Material - Numérico','Item Material','Item Correspondente','Situação'],axis='columns',inplace=True)
     df_prateleira.drop_duplicates(subset=['Código do item AVMG'],inplace=True)
     df_prateleira = df_prateleira.rename(columns = {'Código do item AVMG':'ID Item'})
-    df_prateleira = df_prateleira.rename(columns = {'Item Correspondente':'Item'})
+    df_prateleira = df_prateleira.rename(columns = {'Item Correspondente.1':'Item'})
     df_apuracao = df_apuracao.merge(df_prateleira,on='ID Item', how='left')
 
 
@@ -61,7 +61,6 @@ def main():
     df_apuracao['Dias de atraso - pedido original'] = df_apuracao['Dias de atraso - pedido original'].replace('Não se aplica', "")
     df_apuracao['Data limite de entrega - entrega corretiva'] = df_apuracao['Data limite de entrega - entrega corretiva'].replace('Não se aplica', "")
     df_apuracao['Dias de atraso - entrega corretiva'] = df_apuracao['Dias de atraso - entrega corretiva'].replace('Não se aplica', "")
-
 
     
     #Salvando o arquivo em excel com algumas colunas em formato de data e design em geral
@@ -91,8 +90,35 @@ def main():
             cell = ws[f'{col}{row}']
             if cell.value:
                 cell.style = 'date_style'
-            
-            
+
+    # Adicionando formatação às células do título (linha 1)
+    dark_blue_fill = PatternFill(start_color='00003366', end_color='00003366', fill_type='solid')  # Azul escuro
+    yellow_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')  # Amarelo
+
+    white_font_bold = Font(name='Arial', size=14, color='FFFFFF', bold=True)  # Texto branco em negrito, Arial, tamanho 14
+    black_font_bold = Font(name='Arial', size=14, color='000000', bold=True)  # Texto preto em negrito, Arial, tamanho 14
+
+    alignment = Alignment(horizontal='center', vertical='bottom')  # Centralizado e alinhado embaixo
+
+    yellow_columns = {'AB', 'AI', 'AN'}
+    yellow_columns.update([get_column_letter(col_num) for col_num in range(column_index_from_string('AQ'), column_index_from_string('BO') +1)])
+
+    # Definindo a altura da linha 1
+    ws.row_dimensions[1].height = 100
+
+    # Definindo a largura das colunas para 15
+    for col_num in range(1, ws.max_column + 1):
+        col_letter = get_column_letter(col_num)
+        ws.column_dimensions[col_letter].width = 15
+        cell = ws[f'{col_letter}1']
+        cell.alignment = alignment
+        if col_letter in yellow_columns:
+            cell.fill = yellow_fill
+            cell.font = black_font_bold
+        else:
+            cell.fill = dark_blue_fill
+            cell.font = white_font_bold
+
     filtro = f"A1:{get_column_letter(ws.max_column)}1"
     ws.auto_filter.ref = filtro
 
@@ -106,11 +132,11 @@ def main():
 def encontrar_caminho_apuracao():
     caminho_pasta = var_caminho_pasta.get()
     nome_apuracao = [f for f in os.listdir(caminho_pasta) if (f.startswith('Apuração')
-                     or f.startswith('Apuração Faturamento')
-                     or f.startswith('Apuracao do Faturamento')
-                     or f.startswith('Apuracao faturamento')
-                     or f.startswith('Apuração do faturamento'))
-                     and f.endswith('xlsx')]
+                         or f.startswith('Apuração Faturamento')
+                         or f.startswith('Apuracao do Faturamento')
+                         or f.startswith('Apuracao faturamento')
+                         or f.startswith('Apuração do faturamento'))
+                         and f.endswith('xlsx')]
 
     if not nome_apuracao:
             print("Nenhum arquivo de 'Apuração do faturamento' encontrado.")
@@ -132,10 +158,10 @@ def encontrar_caminho_apuracao():
 def encontrar_caminho_gabarito():
     caminho_pasta = var_caminho_pasta.get()
     nome_gabarito = [f for f in os.listdir(caminho_pasta) if (f.startswith('Gabarito Prateleira')
-                     or f.startswith('gabarito prateleira')
-                     or f.startswith('Gabarito-Prateleira')
-                     or f.startswith('gabarito-prateleira'))
-                     and f.endswith('xlsx')]
+                         or f.startswith('gabarito prateleira')
+                         or f.startswith('Gabarito-Prateleira')
+                         or f.startswith('gabarito-prateleira'))
+                         and f.endswith('xlsx')]
 
     if not nome_gabarito:
         print("Nenhum arquivo de 'Gabarito Prateleira' encontrado.")
@@ -156,10 +182,10 @@ def encontrar_caminho_gabarito():
 def encontrar_caminho_orgao_sigla():
     caminho_pasta = var_caminho_pasta.get()
     nome_orgao_sigla = [f for f in os.listdir(caminho_pasta) if (f.startswith('Gabarito Órgão-Sigla') 
-                        or f.startswith('Gabarito Órgão Sigla')
-                        or f.startswith('Gabarito órgão-sigla')
-                        or f.startswith('Gabarito Orgão-Sigla'))
-                        and f.endswith('xlsx')]
+                            or f.startswith('Gabarito Órgão Sigla')
+                            or f.startswith('Gabarito órgão-sigla')
+                            or f.startswith('Gabarito Orgão-Sigla'))
+                            and f.endswith('xlsx')]
 
     if not nome_orgao_sigla:
         print("Nenhum arquivo de 'Gabarito Órgão-Sigla' encontrado.")
@@ -188,7 +214,7 @@ def selecionar_arquivo():
     
 
 janela = tk.Tk()
-janela.geometry('400x200')
+janela.geometry('400x230')
 janela.title('Valor Faturado') #rever nome da janela
 janela.resizable(False,False) #pra não conseguirem mudar o tamanho da caixa
 texto = tk.Label(janela, text='Selecione a pasta com os arquivos:')
