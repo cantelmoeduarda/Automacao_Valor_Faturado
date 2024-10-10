@@ -88,7 +88,7 @@ def main():
         ws = wb['Valor Faturado']
 
         # Etapa de formatar datas
-        colunas_de_data = ['Data do Fato Gerador', 'Data da Aprovação', 'Data do Ateste', 'Data limite de entrega - entrega corretiva', 'Data limite de entrega - pedido original']
+        colunas_de_data = ['Data do Fato Gerador'.strip(), 'Data da Aprovação'.strip(), 'Data do Ateste'.strip(), 'Data limite de entrega - entrega corretiva'.strip(), 'Data limite de entrega - pedido original'.strip()]
         for data in colunas_de_data:
             df_apuracao[data] = pd.to_datetime(df_apuracao[data]).dt.strftime('%d/%m/%Y')
 
@@ -150,7 +150,7 @@ def main():
 
         # Exibir mensagem de sucesso
         messagebox.showinfo('Sucesso', f'Arquivo Valor Faturado salvo na pasta "{os.path.basename(caminho_pasta)}" com sucesso.{missing_message}')
-        janela.destroy()  # Fecha a janela principal
+        
 
     except Exception as e:
         # **Ocultar o indicador de carregamento em caso de erro**
@@ -198,6 +198,8 @@ def encontrar_caminho_apuracao():
         for arquivo in nome_apuracao:
             caminho_apuracao = os.path.join(caminho_pasta, arquivo)
             df_apuracao = pd.read_excel(caminho_apuracao, sheet_name='Apuração do Faturamento')
+            df_apuracao.columns = df_apuracao.columns.str.strip()
+
             print(f"Arquivo {arquivo} lido com sucesso")
         return df_apuracao
     except PermissionError:
@@ -220,6 +222,8 @@ def encontrar_caminho_gabarito():
         for arquivo in nome_gabarito:
             caminho_gabarito = os.path.join(caminho_pasta, arquivo)
             df_prateleira = pd.read_excel(caminho_gabarito)
+            df_prateleira.columns = df_prateleira.columns.str.strip()
+
             print(f"Arquivo {arquivo} lido com sucesso")
         return df_prateleira
     except PermissionError:
@@ -242,6 +246,8 @@ def encontrar_caminho_orgao_sigla():
         for arquivo in nome_orgao_sigla:
             caminho_orgao_sigla = os.path.join(caminho_pasta, arquivo)
             df_orgao_sigla = pd.read_excel(caminho_orgao_sigla)
+            df_orgao_sigla.columns = df_orgao_sigla.columns.str.strip()
+
             print(f"Arquivo {arquivo} lido com sucesso")
         return df_orgao_sigla
     except PermissionError:
