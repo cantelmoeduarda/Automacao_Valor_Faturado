@@ -41,8 +41,10 @@ def main():
         df_apuracao['Ajustes'] = '0'
 
         # Etapa de preenchimento de uma nova coluna SIGLA com valores da tabela gabarito órgão sigla
+      
         df_orgao_sigla = df_orgao_sigla.rename(columns={'Cliente Nome': 'Órgão/Entidade'})
         df_apuracao = df_apuracao.merge(df_orgao_sigla[['Órgão/Entidade', 'Sigla']], on='Órgão/Entidade', how='left')
+        df_apuracao = df_apuracao.drop_duplicates()
 
         # Etapa de preenchimento de uma nova coluna Item e Categoria com valores da tabela gabarito prateleira
         df_prateleira.drop(['Código Item Material - Numérico', 'Item Material', 'Item Correspondente', 'Situação'], axis='columns', inplace=True)
@@ -50,6 +52,7 @@ def main():
         df_prateleira = df_prateleira.rename(columns={'Código do item AVMG': 'ID Item'})
         df_prateleira = df_prateleira.rename(columns={'Item Correspondente.1': 'Item'})
         df_apuracao = df_apuracao.merge(df_prateleira, on='ID Item', how='left')
+        df_apuracao = df_apuracao.drop_duplicates()
 
         # Etapa preenchendo a coluna “Observação” com o texto “Sem observação”
         df_apuracao['Observação'] = 'Sem observação'
@@ -149,8 +152,7 @@ def main():
         hide_loading_indicator()
 
         # Exibir mensagem de sucesso
-        messagebox.showinfo('Sucesso', f'Arquivo Valor Faturado salvo na pasta "{os.path.basename(caminho_pasta)}" com sucesso.{missing_message}')
-        
+        messagebox.showinfo('Sucesso', f'Arquivo Valor Faturado salvo na pasta "{os.path.basename(caminho_pasta)}" com sucesso.{missing_message}') 
 
     except Exception as e:
         # **Ocultar o indicador de carregamento em caso de erro**
@@ -158,6 +160,8 @@ def main():
 
         messagebox.showerror("Erro", f"Erro ao gerar o arquivo. Verifique se os valores da planilha seguem o padrão recomendado.\n\nDetalhes do erro: {str(e)}")
         raise  # Relevanta a exceção para depuração
+    finally:
+        botao_processar.config(state='normal')
 
     return
 
@@ -178,6 +182,7 @@ def hide_loading_indicator():
     janela.update_idletasks()
 
 def iniciar_processamento():
+    botao_processar.config(state='disabled')
     # Inicia a thread que executa a função main()
     threading.Thread(target=main).start()
 
