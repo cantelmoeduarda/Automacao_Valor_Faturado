@@ -47,10 +47,10 @@ def main():
         df_apuracao = df_apuracao.drop_duplicates()
 
         # Etapa de preenchimento de uma nova coluna Item e Categoria com valores da tabela gabarito prateleira
-        df_prateleira.drop(['Código Item Material - Numérico', 'Item Material', 'Item Correspondente', 'Situação'], axis='columns', inplace=True)
+        df_prateleira.drop(['Código Item Material - Numérico', 'Item Material', 'Item Correspondente.1', 'Situação'], axis='columns', inplace=True)
         df_prateleira.drop_duplicates(subset=['Código do item AVMG'], inplace=True)
         df_prateleira = df_prateleira.rename(columns={'Código do item AVMG': 'ID Item'})
-        df_prateleira = df_prateleira.rename(columns={'Item Correspondente.1': 'Item'})
+        df_prateleira = df_prateleira.rename(columns={'Item Correspondente': 'Item'})
         df_apuracao = df_apuracao.merge(df_prateleira, on='ID Item', how='left')
         df_apuracao = df_apuracao.drop_duplicates()
 
@@ -67,7 +67,7 @@ def main():
         df_apuracao['Dias de atraso - entrega corretiva'] = df_apuracao['Dias de atraso - entrega corretiva'].replace('Não se aplica', "")
 
         # Verificar células em branco
-        columns_to_check = ['Sigla', 'Categoria', 'Item']
+        columns_to_check = ['Sigla', 'Item', 'Categoria']
         missing_columns = []
 
         for column in columns_to_check:
